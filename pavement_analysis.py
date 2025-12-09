@@ -14,7 +14,7 @@ DATA_FOLDER = '.'
 FILE_PATTERN = 'e1i_*.xml'
 
 # Pavement Temperature (Assumed constant for this script)
-TEMP_C = 20.0  # degrees Celsius
+TEMP_C = 5.0  # degrees Celsius
 
 
 # VEHICLE AXLE CONFIGURATION
@@ -53,7 +53,7 @@ VEHICLE_CONFIGS = {
         "axles": [(70, 'single'), (110, 'single')], 
         "description": "City bus (2-axle)"
     },
-    "Trailer": {
+    "Trailers": {
         "total_weight": 440,    
         "axles": [(70, 'single'), (180, 'tandem'), (190, 'tridem')],
         "description": "Heavy articulated truck"
@@ -105,8 +105,8 @@ TIRE_RADIUS = 107.0
 # log|E*| = delta + alpha / (1 + exp(beta + gamma * log(fr)))
 
 
-SIG_DELTA = 1.30     # Lower asymptote (log MPa) 
-SIG_ALPHA = 2.30     # Span 
+SIG_DELTA = 1.20     # Lower asymptote (log MPa) 
+SIG_ALPHA = 2.40     # Span 
 SIG_BETA = -1.20     # horizontal position
 SIG_GAMMA = -0.45    # slope
 
@@ -168,10 +168,10 @@ ROAD_DIRECTIONS = {
 # Lane distribution factors WITHIN each direction
 
 LANE_FACTORS = {
-    'e1i_0.xml': 0.60,  
-    'e1i_1.xml': 0.40,   
-    'e1i_2.xml': 0.40,   
-    'e1i_3.xml': 0.60,   
+    'e1i_0.xml': 0.50,  
+    'e1i_1.xml': 0.50,   
+    'e1i_2.xml': 0.50,   
+    'e1i_3.xml': 0.50,   
 }
 DEFAULT_LANE_FACTOR = 0.50
 
@@ -261,7 +261,7 @@ def calculate_loading_frequency(speed_ms):
         return 1.0
     # Convert tire radius to meters
     a_m = TIRE_RADIUS / 1000.0
-    freq = speed_ms / (2.0 * a_m)
+    freq = speed_ms / (2.0 * math.pi * a_m)
     return freq
 
 def calculate_asphalt_modulus(speed_ms, temp_c):
@@ -287,7 +287,7 @@ def calculate_asphalt_modulus(speed_ms, temp_c):
     E_star = 10 ** log_E
     
     # Bound to realistic values
-    E_star = max(100.0, min(E_star, 20000.0))
+    E_star = max(100.0, min(E_star, 35000.0))
     
     return E_star
 
@@ -296,7 +296,7 @@ def calculate_asphalt_modulus(speed_ms, temp_c):
 AXLE_SPACING = {
     'single': 0.0,       
     'tandem': 1.22,      
-    'tridem': 3.22,      
+    'tridem': 1.22,      
 }
 
 INTER_AXLE_GROUP_SPACING = 4.5  
