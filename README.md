@@ -60,7 +60,7 @@ Vehicles are defined by their total weight and axle configurations.
 The fatigue life ($N_f$) is calculated using the following model:
 $N_f = a \cdot (1/\epsilon)^b \cdot (1/E)^c \cdot \exp(d \cdot T + f \cdot RP)$
 
-Where coefficients depend on the axle type:
+Where coefficients depend on the axle type, based on the findings of (H. Cheng et al, [2023](https://www.nature.com/articles/s41467-023-40116-0))
 
 | Axle Type | a | b | c | d | f |
 | :--- | :--- | :--- | :--- | :--- | :--- |
