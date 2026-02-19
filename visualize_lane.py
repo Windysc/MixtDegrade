@@ -94,9 +94,9 @@ for edge in net_root.findall('edge'):
             if pts:
                 all_lane_coords.append(pts)
 
-print("Step 2/3: Processing Lane Changes (lannchange.xml)...")
+print("Step 2/3: Processing Lane Changes (lanechange.xml)...")
 
-change_tree = ET.parse('lannchange.xml')
+change_tree = ET.parse('lanechange.xml')
 change_root = change_tree.getroot()
 
 records = []
@@ -250,7 +250,7 @@ def visualize_vehicle_activity(df, vehicle_id, lane_db, all_lane_coords):
     fig = plt.figure(figsize=(16, 14))
     
     ax1 = fig.add_subplot(2, 2, 1)
-    line_segments = LineCollection(all_lane_coords, colors='lightgray', linewidths=1.0, alpha=0.4)
+    line_segments = LineCollection(all_lane_coords, colors='grey', linewidths=1.0, alpha=0.5)
     ax1.add_collection(line_segments)
     
     if not df_vehicle.empty and df_vehicle['X'].notnull().any():
