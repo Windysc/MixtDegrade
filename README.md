@@ -7,24 +7,44 @@ This project provides a Python-based tool (`pavement_analysis.py`) for analyzing
 *   **MLET-based Strain Calculation**: Calculates tensile strain at the bottom of the asphalt layer using Multi-Layer Elastic Theory, considering layer properties and load characteristics.
 *   **Multi-Axle Support**: detailed handling of single, tandem, and tridem axle groups, including load splitting and superposition effects for strain calculation.
 *   **Dynamic Modulus**: Calculates asphalt dynamic modulus ($|E^*|$) based on vehicle speed (loading frequency) and temperature using a Sigmoidal Master Curve and WLF shift factors.
+*   **SMHI Temperature Integration**: Fetches real-time or historical temperature data from SMHI (Swedish Meteorological and Hydrological Institute) Open Data API with multiple modes (CONSTANT, REALTIME, DAILY, CACHED).
 *   **Healing Effect**: Incorporates a fatigue model that accounts for rest periods between vehicle loads, quantifying the "healing" or recovery benefit of intermittent loading.
 *   **Detailed Vehicle Modeling**: Defines specific axle configurations (weights, types) for various vehicle classes (Passenger, Truck, HGV, Bus, etc.).
 *   **Lane-by-Lane Analysis**: Processes SUMO XML lane output files individually and aggregates results by road direction.
+*   **Odemark's Equivalent Thickness**: Transforms multi-layer pavement into equivalent two-layer system using Swedish Odemark method (1949).
+*   **Lane Change Visualization**: Generates spatial and temporal visualizations of lane change behavior, including single vehicle trajectory tracking.
 
 ## Prerequisites
 
 *   Python 3.x
-*   Standard Python libraries: `xml.etree.ElementTree`, `math`, `os`, `glob`
+*   Standard libraries: `xml.etree.ElementTree`, `math`, `os`, `glob`, `json`, `urllib`, `datetime`
+*   Visualization: `pandas`, `matplotlib`, `seaborn`, `numpy`
 
 ## Usage
 
 1.  **Prepare Data**: Ensure your SUMO simulation output files (XML format, e.g., `e1i_0.xml`) are in the same directory as the script.
-2.  **Configuration**: The script uses default parameters optimized for a 120mm asphalt layer at 20°C. You can modify constants in the script if needed.
+2.  **Configuration**: Configure temperature model mode (`TEMP_MODEL_MODE`) and SMHI station ID (`SMHI_STATION_ID`) in the script. Modes:
+    - `CONSTANT`: Use fixed temperature value
+    - `REALTIME`: Fetch hourly data from SMHI API
+    - `DAILY`: Use daily mean temperature from SMHI API
+    - `CACHED`: Use previously cached data (offline mode)
 3.  **Run the Script**:
     ```bash
     python pavement_analysis.py
     ```
-4.  **View Results**: The script will output a detailed analysis to the console, including damage contributions and remaining life estimates in visualize_lane.py
+4.  **View Results**: The script outputs detailed analysis to the console, including damage contributions and remaining life estimates.
+
+5.  **Lane Change Visualization**: Run `visualize_lane.py` to generate lane change behavior visualizations:
+    ```bash
+    python visualize_lane.py
+    ```
+    Produces 6 visualizations:
+    - Lane changes by road segment (top 20 edges)
+    - Normalized merging behavior distribution
+    - Physical map of lane change hotspots
+    - Lane change frequency over time
+    - Overtaking vs. returning lane transitions
+    - Single vehicle activity analysis (interactive selection)
    
 
 ## Calculation Process and Parameters
@@ -34,16 +54,18 @@ This section details the calculation logic and parameters used in the script.
 ### 1. Parameters
 
 #### Pavement Structure
-The pavement is modeled as a multi-layer system. Key parameters include:
+The pavement is modeled as a Swedish multi-layer system using Odemark's equivalent thickness method:
 
-| Layer | Thickness (mm) | Modulus (MPa) | Poisson's Ratio | Variable Name |
+| Layer | Material | Thickness (mm) | Modulus (MPa) | Poisson's Ratio |
 | :--- | :--- | :--- | :--- | :--- |
-| **Asphalt** | 120.0 | Dynamic | 0.35 | `H_ASPHALT` |
-| **Base** | 145.0 | 300.0 | 0.35 | `H_BASE`, `E_BASE` |
-| **Subbase** | 220.0 | 150.0 | 0.35 | `H_SUBBASE`, `E_SUBBASE` |
-| **Subgrade** | Infinite | 50.0 | 0.45 | `E_SUBGRADE` |
+| **Wearing** | ABT11 70/100 | 40 | 5500 | 0.35 |
+| **Binder** | ABb16 50/70 | 50 | 6500 | 0.35 |
+| **Bound Base** | AG22 160/220 | 65 | 4000 | 0.35 |
+| **Unbound Base** | GW-CR (4-6% fines) | 80 | 300 | 0.35 |
+| **Subbase** | GW-CR (4-6% fines) | 420 | 200 | 0.35 |
+| **Subgrade** | 4e-Lera (Clay) | Infinite | 20 | 0.45 |
 
-*Note: Asphalt modulus is calculated dynamically based on speed and temperature.*
+*Note: Bitumen-bound layer moduli are temperature-dependent using master curve.*
 
 #### Vehicle Configuration
 Vehicles are defined by their total weight and axle configurations.
@@ -55,7 +77,7 @@ Vehicles are defined by their total weight and axle configurations.
 | **HGV** | 400 | Front: 70kN (Single), Drive: 180kN (Tandem), Trailer: 150kN (Tandem) |
 | **Bus** | 180 | Front: 70kN (Single), Rear: 110kN (Single) |
 | **Trailer** | 440 | Front: 70kN (Single), Drive: 180kN (Tandem), Trailer: 190kN (Tridem) |
-| **Autonomous**| 18 | Front: 8kN (Single), Rear: 10kN (Single) |
+| **Autonomous**| 18 | Front: 7kN (Single), Rear: 8kN (Single) |
 
 #### Fatigue Model Parameters
 The fatigue life ($N_f$) is calculated using the following model:
