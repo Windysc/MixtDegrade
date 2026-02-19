@@ -24,7 +24,8 @@ This project provides a Python-based tool (`pavement_analysis.py`) for analyzing
     ```bash
     python pavement_analysis.py
     ```
-4.  **View Results**: The script will output a detailed analysis to the console, including damage contributions and remaining life estimates.
+4.  **View Results**: The script will output a detailed analysis to the console, including damage contributions and remaining life estimates in visualize_lane.py
+   
 
 ## Calculation Process and Parameters
 
